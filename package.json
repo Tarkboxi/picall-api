@@ -1,0 +1,22 @@
+{
+  "name": "picall-api",
+  "version": "1.0.0",
+  "description": "api for the picall app.",
+  "main": "app.js",
+  "author": "Manoj",
+  "license": "ISC",
+  "dependencies": {
+    "bcrypt": "^5.0.1",
+    "express": "^4.17.1",
+    "jsonwebtoken": "^8.5.1",
+    "lodash": "^4.17.21",
+    "mongoose": "^6.0.6",
+    "mongoose-unique-validator": "^2.0.3",
+    "nodemon": "^2.0.12"
+  },
+  "scripts": {
+    "test": "test",
+    "start": "node server.js",
+    "dev": "nodemon server.js"
+  }
+}
