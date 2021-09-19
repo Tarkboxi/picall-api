@@ -102,3 +102,9 @@ dist
 
 # TernJS port file
 .tern-port
+
+# Mongo Atlas DB key
+keys/
+
+# Static uploaded files
+store/photos/
