@@ -13,6 +13,13 @@ mongoose.connect(DB_CONNECTION_STRING).then( () => {
     console.error("Failed to connect to Database!");
 });
 
+app.use((req, res, next) => {
+    res.setHeader('Access-Control-Allow-Origin', 'http://localhost:4200');
+    res.setHeader('Access-Control-Allow-Headers', "Origin, X-Requested-With, Content-Type, Accept, Authorization");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, FETCH, DELETE, OPTIONS");
+    next();
+});
+
 //app.use("/api/photos", photoRoutes);
 app.use("/api/users", userRoutes);
 app.use("/photos", express.static(path.join("store/photos")));
