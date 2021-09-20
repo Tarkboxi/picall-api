@@ -104,7 +104,7 @@ dist
 .tern-port
 
 # Mongo Atlas DB key
-keys/
+keys/db-key.js
 
 # Static uploaded files
 store/photos/

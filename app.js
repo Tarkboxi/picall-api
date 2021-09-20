@@ -20,7 +20,7 @@ app.use((req, res, next) => {
     next();
 });
 
-//app.use("/api/photos", photoRoutes);
+app.use("/api/photos", photoRoutes);
 app.use("/api/users", userRoutes);
 app.use("/photos", express.static(path.join("store/photos")));
 

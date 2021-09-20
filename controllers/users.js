@@ -4,8 +4,7 @@ const saltRounds = 10;
 const jwt = require("jsonwebtoken");
 const router = express.Router();
 const User = require("../models/user");
-const jwtSecretKey = "ranomize_this_later_@_blah_flah";
-const jwtDuration = "1h";
+const jwtParams = require("../keys/jwt-secret-key");
 
 
 router.post("/signup", (req, res, next) => {
@@ -40,7 +39,7 @@ router.post("/login", (req, res) => {
                     message: "Incorrect Password/email."
                 });                 
             }
-            const token = jwt.sign({email: user.email, userid: user._id}, jwtSecretKey, {expiresIn: jwtDuration});
+            const token = jwt.sign({email: user.email, userid: user._id}, jwtParams.key, {expiresIn: jwtParams.expires});
             return res.status(200).json({
                 token: token
             });
