@@ -1,7 +1,7 @@
 const express = require("express");
 const multer = require("multer");
 const router = express.Router();
-const Photo = require('../models/photo');
+const Photos = require('../models/photos');
 const checkAuth = require("../middleware/check-auth");
 const MIME_TYPE_MAP = require("../properties/image-mime");
 
@@ -21,16 +21,16 @@ const storage = multer.diskStorage({
     }
 });
 
-router.post("", multer({storage: storage}).single("photo"), (req, res, next)=> {
+router.post("", checkAuth, multer({storage: storage}).single("photo"), (req, res, next)=> {
     const url = req.protocol+'://'+req.get("host");
-    const photo = new Photo({
+    const photo = new Photos({
         title: req.body.title,
         url: url + "/photos/" + req.file.filename
     });
-    photo.save().then(createdPhoto => {
+    photos.save().then(createdPhoto => {
         res.status(201).json({
             message: 'Photo added successfully',
-            photo: {
+            photos: {
                 id: createdPhoto._id,
                 title: createdPhoto.title,
                 url: createdPhoto.url
@@ -38,5 +38,25 @@ router.post("", multer({storage: storage}).single("photo"), (req, res, next)=> {
         });
     });
 });
+
+router.get("", checkAuth, (req, res, next) => {
+    const countPerPage = +req.query.count;
+    const currentPage = +req.query.page;
+    const photoQuery = Photos.find();
+    let fetchedPhotos;
+    if (countPerPage && currentPage) {
+        photoQuery.skip(countPerPage * (currentPage - 1)).limit(countPerPage);
+    }
+    photoQuery.then(documents => {
+        fetchedPhotos = documents;
+        return Photos.count();
+      }).then(count => {
+        res.status(200).json({
+          message: "Photos fetched successfully!",
+          photos: fetchedPhotos,
+          total: count
+        });
+      });
+  });
 
 module.exports = router;

@@ -3,7 +3,7 @@ const jwtParams = require("../keys/jwt-secret-key")
 
 module.exports = (req, res, next) => {
   try {
-    const token = req.headers.authorization.split;
+    const token = req.headers.authorization;
     jwt.verify(token, jwtParams.key);
     next();
     } catch(error) {
