@@ -39,7 +39,7 @@ router.post("/login", (req, res) => {
                     message: "Incorrect Password/email."
                 });                 
             }
-            const token = jwt.sign({email: user.email, userid: user._id}, jwtParams.key, {expiresIn: jwtParams.expires});
+            const token = jwt.sign({email: user.email, userId: user._id}, jwtParams.key, {expiresIn: jwtParams.expires});
             return res.status(200).json({
                 token: token
             });
