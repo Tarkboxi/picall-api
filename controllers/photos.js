@@ -1,27 +1,13 @@
 const express = require("express");
-const multer = require("multer");
 const router = express.Router();
 const Photos = require('../models/photos');
 const checkAuth = require("../middleware/check-auth");
-const MIME_TYPE_MAP = require("../properties/image-mime");
+const photoUpload = require("../middleware/photo-uploader");
+const deleter = require("../middleware/photo-deleter");
+const _ = require("lodash");
 
-const storage = multer.diskStorage({
-    destination: (req, file, callback) => {
-        const isValid = MIME_TYPE_MAP[file.mimetype];
-        let error = new Error("Invalid mime type");
-        if(isValid) {
-            error = null;
-        }
-        callback(null, "store/photos");
-    },
-    filename: (req, file, callback) => {
-        const name = file.originalname.toLowerCase().split(' ').join('-');
-        const ext = MIME_TYPE_MAP[file.mimetype];
-        callback(null, name+'-'+Date.now()+'.'+ext);
-    }
-});
-
-router.post("", checkAuth, multer({storage: storage}).single("photo"), (req, res, next)=> {
+router.post("", checkAuth, async(req, res, next)=> {
+    await photoUpload(req, res);
     const url = req.protocol+'://'+req.get("host");
     const photos = new Photos({
         title: req.body.title,
@@ -31,12 +17,7 @@ router.post("", checkAuth, multer({storage: storage}).single("photo"), (req, res
     photos.save().then(createdPhoto => {
         res.status(201).json({
             message: 'Photo added successfully',
-            photos: [{
-                id: createdPhoto._id,
-                title: createdPhoto.title,
-                url: createdPhoto.url,
-                creator: createdPhoto.creator
-            }],
+            photos: [createdPhoto],
             total: 1
         });
     });
@@ -63,8 +44,9 @@ router.get("", checkAuth, (req, res, next) => {
   });
 
 router.delete("", checkAuth, (req, res, next) => {
-    Photos.deleteMany({_id: { $in: req.body}, creator: req.userData.userId})
-    .then(result => {
+    Photos.deleteMany({_id: { $in: _.map(req.body, 'id')}, creator: req.userData.userId})
+    .then(async result => {
+        await deleter(_.map(req.body, 'url'), req.headers);
         res.status(200).json({ 
             message: "Photos deleted!",
             photos: req.body
