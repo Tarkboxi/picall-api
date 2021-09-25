@@ -5,11 +5,11 @@ const MIME_TYPE_MAP = require("../properties/image-mime");
 const storage = multer.diskStorage({
     destination: (req, file, callback) => {
         const isValid = MIME_TYPE_MAP[file.mimetype];
-        let error = new Error("Invalid mime type");
+        let error = new Error("Not a valid image file type");
         if(isValid) {
             error = null;
         }
-        callback(null, "store/photos");
+        callback(error, "store/photos");
     },
     filename: (req, file, callback) => {
         const name = file.originalname.toLowerCase().split(' ').join('-');
