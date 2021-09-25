@@ -7,18 +7,23 @@ const deleter = require("../middleware/photo-deleter");
 const _ = require("lodash");
 
 router.post("", checkAuth, async(req, res, next)=> {
-    await photoUpload(req, res);
-    const url = req.protocol+'://'+req.get("host");
-    const photos = new Photos({
-        title: req.body.title,
-        url: url + "/photos/" + req.file.filename,
-        creator: req.userData.userId
-    });
-    photos.save().then(createdPhoto => {
-        res.status(201).json({
-            message: 'Photo added successfully',
-            photos: [createdPhoto],
-            total: 1
+    let uploadResults = await photoUpload(req, res).then(()=>{
+        const url = req.protocol+'://'+req.get("host");
+        const photos = new Photos({
+            title: req.body.title,
+            url: url + "/photos/" + req.file.filename,
+            creator: req.userData.userId
+        });
+        photos.save().then(createdPhoto => {
+            res.status(201).json({
+                message: 'Photo added successfully',
+                photos: [createdPhoto],
+                total: 1
+            });
+        });
+    }).catch((err) => {
+        res.status(500).json({
+            message: err.message,
         });
     });
 });
@@ -46,11 +51,18 @@ router.get("", checkAuth, (req, res, next) => {
 router.delete("", checkAuth, (req, res, next) => {
     Photos.deleteMany({_id: { $in: _.map(req.body, 'id')}, creator: req.userData.userId})
     .then(async result => {
-        await deleter(_.map(req.body, 'url'), req.headers);
-        res.status(200).json({ 
-            message: "Photos deleted!",
-            photos: req.body
-        });
+        if(result.deletedCount > 0) {
+            await deleter(_.map(req.body, 'url'), req.headers);
+            res.status(200).json({ 
+                message: "Photos deleted!",
+                photos: req.body
+            });
+        } else {
+            res.status(401).json({ 
+                message: "Not authorized",
+                photos: req.body
+            });            
+        }
     });
 });
 
