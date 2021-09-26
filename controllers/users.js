@@ -1,13 +1,10 @@
-const express = require("express");
 const bcrypt = require("bcrypt");
-const saltRounds = 10;
 const jwt = require("jsonwebtoken");
-const router = express.Router();
 const User = require("../models/user");
 const jwtParams = require("../keys/jwt-secret-key");
+const saltRounds = 10;
 
-
-router.post("/signup", (req, res, next) => {
+exports.addUser = (req, res, next) => {
     bcrypt.hash(req.body.password, saltRounds).then(hash => {
         const user = new User({
             email: req.body.email,
@@ -24,9 +21,9 @@ router.post("/signup", (req, res, next) => {
             });
         })
     });
-});
+};
 
-router.post("/login", (req, res) => {
+exports.login = (req, res) => {
     User.findOne({email: req.body.email}).then(user => {
         if(!user) {
             return res.status(401).json({
@@ -50,7 +47,4 @@ router.post("/login", (req, res) => {
             error: err
         });
     });
-});
-
-
-module.exports = router;
+};

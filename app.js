@@ -1,7 +1,7 @@
 const DB_CONNECTION_STRING = require('./keys/db-key');
 const path = require("path");
-const photoRoutes = require("./controllers/photos");
-const userRoutes = require("./controllers/users");
+const photoRoutes = require("./routes/photos");
+const userRoutes = require("./routes/users");
 const express = require('express');
 const mongoose = require("mongoose");
 
@@ -23,5 +23,6 @@ app.use((req, res, next) => {
 app.use("/api/photos", photoRoutes);
 app.use("/api/users", userRoutes);
 app.use("/photos", express.static(path.join("store/photos")));
+app.use('/', express.static(__dirname + '/'));
 
 module.exports = app;

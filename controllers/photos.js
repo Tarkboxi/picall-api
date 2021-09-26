@@ -1,12 +1,9 @@
-const express = require("express");
-const router = express.Router();
 const Photos = require('../models/photos');
-const checkAuth = require("../middleware/check-auth");
 const photoUpload = require("../middleware/photo-uploader");
 const deleter = require("../middleware/photo-deleter");
 const _ = require("lodash");
 
-router.post("", checkAuth, async(req, res, next)=> {
+exports.addPhotos = async(req, res, next)=> {
     let uploadResults = await photoUpload(req, res).then(()=>{
         const url = req.protocol+'://'+req.get("host");
         const photos = new Photos({
@@ -26,9 +23,9 @@ router.post("", checkAuth, async(req, res, next)=> {
             message: err.message,
         });
     });
-});
+};
 
-router.get("", checkAuth, (req, res, next) => {
+exports.getPhotos = (req, res, next) => {
     const countPerPage = +req.query.count;
     const currentPage = +req.query.page;
     const photoQuery = Photos.find();
@@ -40,21 +37,21 @@ router.get("", checkAuth, (req, res, next) => {
     photoQuery.then(documents => {
         fetchedPhotos = documents;
         return Photos.count();
-      }).then(count => {
+    }).then(count => {
         res.status(200).json({
           message: "Photos fetched successfully!",
           photos: fetchedPhotos,
           total: count
         });
-      })
-      .catch(error=> {
+    })
+    .catch(error=> {
         res.status(500).json({ 
             message: error,
         });
-      });
-  });
+    });
+};
 
-router.delete("", checkAuth, (req, res, next) => {
+exports.deletePhotos = (req, res, next) => {
     Photos.deleteMany({_id: { $in: _.map(req.body, 'id')}, creator: req.userData.userId})
     .then(async result => {
         if(result.deletedCount > 0) {
@@ -66,7 +63,7 @@ router.delete("", checkAuth, (req, res, next) => {
             });
         } else {
             res.status(500).json({ 
-                message: "Failed to delete",
+                message: "Failed to delete. No photos found.",
             });
         }
     })
@@ -74,7 +71,5 @@ router.delete("", checkAuth, (req, res, next) => {
         res.status(500).json({ 
             message: error,
         });
-      });
-});
-
-module.exports = router;
+    });
+};
