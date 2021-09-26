@@ -33,6 +33,7 @@ router.get("", checkAuth, (req, res, next) => {
     const currentPage = +req.query.page;
     const photoQuery = Photos.find();
     let fetchedPhotos;
+    photoQuery.sort({ createdAt: 'desc'});
     if (countPerPage && currentPage) {
         photoQuery.skip(countPerPage * (currentPage - 1)).limit(countPerPage);
     }
@@ -45,6 +46,11 @@ router.get("", checkAuth, (req, res, next) => {
           photos: fetchedPhotos,
           total: count
         });
+      })
+      .catch(error=> {
+        res.status(500).json({ 
+            message: error,
+        });
       });
   });
 
@@ -55,15 +61,20 @@ router.delete("", checkAuth, (req, res, next) => {
             await deleter(_.map(req.body, 'url'), req.headers);
             res.status(200).json({ 
                 message: "Photos deleted!",
-                photos: req.body
+                photos: req.body,
+                count: result.deletedCount
             });
         } else {
-            res.status(401).json({ 
-                message: "Not authorized",
-                photos: req.body
-            });            
+            res.status(500).json({ 
+                message: "Failed to delete",
+            });
         }
-    });
+    })
+    .catch(error=> {
+        res.status(500).json({ 
+            message: error,
+        });
+      });
 });
 
 module.exports = router;
