@@ -1,23 +1,25 @@
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
-const User = require("../models/user");
+const User = require("../models/User");
 const jwtParams = require("../keys/jwt-secret-key");
-const saltRounds = 10;
+const bcryptSalt = 10;
+const messaging = require("../properties/messaging");
+const errorBuilder = require('../utils/error-builder');
 
 exports.addUser = (req, res, next) => {
-    bcrypt.hash(req.body.password, saltRounds).then(hash => {
+    bcrypt.hash(req.body.password, bcryptSalt).then(hash => {
         const user = new User({
             email: req.body.email,
             password: hash
         });
         user.save().then(result => {
             res.status(201).json({
-                message: "User Created",
+               data: result,
             })
         })
-        .catch(err=> {
+        .catch(error=> {
             res.status(500).json({
-                message: "User already exists for email: "+req.body.email
+                errors: [ errorBuilder("500", messaging.userExists+req.body.email, error) ]
             });
         })
     });
@@ -27,24 +29,25 @@ exports.login = (req, res) => {
     User.findOne({email: req.body.email}).then(user => {
         if(!user) {
             return res.status(401).json({
-                message: "Email not registered."
+                errors: [ errorBuilder("401", messaging.unregisteredEmail, {}) ]
             });
         }
         return bcrypt.compare(req.body.password, user.password).then(result => {
             if(!result) {
                 return res.status(401).json({
-                    message: "Incorrect Password/email."
+                    errors: [ errorBuilder("401", messaging.incorrectCredentials, {}) ]
                 });                 
             }
             const token = jwt.sign({email: user.email, userId: user._id}, jwtParams.key, {expiresIn: jwtParams.expires});
             return res.status(200).json({
-                token: token,
+                data: {
+                    token: token
+                },
             });
         });
-    }).catch(err => {
+    }).catch(error => {
         return res.status(401).json({
-            message: "Failed to verify auth and generate session.",
-            error: err
+            errors: [ errorBuilder("401", messaging.sessionGenerateFailed, error) ]
         });
     });
 };
