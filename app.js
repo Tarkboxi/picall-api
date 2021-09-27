@@ -9,8 +9,8 @@ const app = express();
 app.use(express.json());
 
 mongoose.connect(DB_CONNECTION_STRING).then( () => {
-}).catch(()=> {
-    console.error("Failed to connect to Database!");
+}).catch((error)=> {
+    console.error(error);
 });
 
 app.use((req, res, next) => {
