@@ -105,6 +105,3 @@ dist
 
 # Mongo Atlas DB key
 keys/db-key.js
-
-# Static uploaded files
-store/photos/
