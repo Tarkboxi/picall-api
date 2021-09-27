@@ -1,7 +1,9 @@
-const Photos = require('../models/photos');
-const photoUpload = require("../middleware/photo-uploader");
-const deleter = require("../middleware/photo-deleter");
+const Photos = require('../models/Photos');
+const photoUpload = require("../utils/photo-uploader");
+const deleter = require("../utils/photo-deleter");
 const _ = require("lodash");
+const messaging = require("../properties/messaging");
+const errorBuilder = require('../utils/error-builder');
 
 exports.addPhotos = async(req, res, next)=> {
     let uploadResults = await photoUpload(req, res).then(()=>{
@@ -13,14 +15,12 @@ exports.addPhotos = async(req, res, next)=> {
         });
         photos.save().then(createdPhoto => {
             res.status(201).json({
-                message: 'Photo added successfully',
-                photos: [createdPhoto],
-                total: 1
+                data: [createdPhoto],
             });
         });
-    }).catch((err) => {
+    }).catch((error) => {
         res.status(500).json({
-            message: err.message,
+            errors: [ errorBuilder("500", error.message, error) ]
         });
     });
 };
@@ -39,14 +39,13 @@ exports.getPhotos = (req, res, next) => {
         return Photos.count();
     }).then(count => {
         res.status(200).json({
-          message: "Photos fetched successfully!",
-          photos: fetchedPhotos,
-          total: count
+            data: fetchedPhotos,
+            total: count
         });
     })
     .catch(error=> {
         res.status(500).json({ 
-            message: error,
+            errors: [ errorBuilder("500", messaging.photoFetchFailed, error) ]
         });
     });
 };
@@ -57,19 +56,18 @@ exports.deletePhotos = (req, res, next) => {
         if(result.deletedCount > 0) {
             await deleter(_.map(req.body, 'url'), req.headers);
             res.status(200).json({ 
-                message: "Photos deleted!",
-                photos: req.body,
+                data: req.body,
                 count: result.deletedCount
             });
         } else {
             res.status(500).json({ 
-                message: "Failed to delete. No photos found.",
+                errors: [ errorBuilder("500", messaging.photoDeleteFailed, error) ],
             });
         }
     })
     .catch(error=> {
         res.status(500).json({ 
-            message: error,
+            errors: [ errorBuilder("500", error.message, error) ]
         });
     });
 };
