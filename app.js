@@ -23,6 +23,4 @@ app.use((req, res, next) => {
 app.use("/api/photos", photoRoutes);
 app.use("/api/users", userRoutes);
 app.use("/photos", express.static(path.join("store/photos")));
-app.use('/', express.static(__dirname + '/'));
-
 module.exports = app;
