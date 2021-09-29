@@ -7,17 +7,21 @@ const errorBuilder = require('../utils/error-builder');
 
 exports.addPhotos = async(req, res, next)=> {
     let uploadResults = await photoUpload(req, res).then(()=>{
+        let uploadedPhotos = [];
         const url = req.protocol+'://'+req.get("host");
-        const photos = new Photos({
-            title: req.body.title,
-            url: url + "/photos/" + req.file.filename,
-            creator: req.userData.userId
-        });
-        photos.save().then(createdPhoto => {
-            res.status(201).json({
-                data: [createdPhoto],
+        const files = req.files;
+        for(let file of files) {
+            const photo = new Photos({
+                url: url + "/photos/" + file.filename,
+                creator: req.userData.userId
             });
-        });
+            uploadedPhotos.push(photo);
+        }
+        Photos.insertMany(uploadedPhotos).then(uploadedPhotos => {
+            res.status(201).json({
+                data: uploadedPhotos,
+            });
+        });    
     }).catch((error) => {
         res.status(500).json({
             errors: [ errorBuilder("500", error.message, error) ]
